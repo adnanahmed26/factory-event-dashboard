@@ -1,0 +1,38 @@
+{
+  "name": "factory-event-dashboard",
+  "version": "1.0.0",
+  "description": "PostgreSQL production event dashboard with MQTT device integration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "db:local": "node scripts/local-db.mjs",
+    "migrate": "node scripts/migrate.js",
+    "test": "node --test --test-concurrency=1 tests/integration.test.js",
+    "test:ui": "playwright test",
+    "mqtt:simulator": "node scripts/mqtt-simulator.js",
+    "format": "prettier --write server.js src public scripts tests playwright.config.js",
+    "format:check": "prettier --check server.js src public scripts tests playwright.config.js",
+    "package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-project.ps1",
+    "secrets:check": "node scripts/scan-secrets.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^18.0.6",
+    "express": "^5.2.1",
+    "mqtt": "^5.16.0",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "aedes": "^1.2.0",
+    "embedded-postgres": "^18.4.0-beta.17",
+    "prettier": "^3.9.9"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

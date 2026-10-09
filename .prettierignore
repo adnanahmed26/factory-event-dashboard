@@ -1,0 +1,8 @@
+node_modules
+.local-postgres
+.test-postgres
+.tools
+package-lock.json
+docs/screenshots
+docs/dashboard-concept.png
+test-results
