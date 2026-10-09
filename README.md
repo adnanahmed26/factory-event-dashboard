@@ -128,6 +128,12 @@ Invoke-RestMethod http://127.0.0.1:3001/api/ack -Method Post -ContentType applic
 
 ## MQTT
 
+For a local connection without generating demo events, run `npm.cmd run mqtt:broker`
+and leave it running alongside PostgreSQL and the application. Set
+`MQTT_ENABLED=true` and `MQTT_URL=mqtt://127.0.0.1:1884` in your private `.env`.
+If the local broker stops, the dashboard reports Offline and the worker retries
+automatically until the broker is running again.
+
 MQTT is disabled in `.env.example`. The candidate ID is `10`, as specified by the user. No connection to the external assessment broker was made during development.
 
 ### Reproducible local device demo

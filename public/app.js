@@ -36,6 +36,8 @@ const store = {
   busy: false,
   loading: false,
   refreshId: 0,
+  summaryRefreshId: 0,
+  summaryLoading: false,
 };
 const escape = (value) =>
   String(value ?? '—').replace(
@@ -207,8 +209,48 @@ function renderDevice(device) {
       ),
     );
 }
+function renderSummary(summary) {
+  Object.entries(summary).forEach(([key, value]) => {
+    const el = $(`[data-metric="${key}"]`);
+    if (el) el.textContent = Number(value).toLocaleString();
+  });
+}
+async function refreshSummary() {
+  if (store.summaryLoading || store.loading) return;
+  const requestId = ++store.summaryRefreshId;
+  const source = store.source ? `&source_id=${encodeURIComponent(store.source)}` : '';
+  store.summaryLoading = true;
+  $('#refresh-summary').disabled = true;
+  $('#refresh-summary-label').textContent = 'Refreshing…';
+  $('#summary-status').textContent = '';
+  $('#summary-status').classList.remove('error');
+  $('.metrics').setAttribute('aria-busy', 'true');
+  try {
+    const summary = await api('/api/state?view=summary' + source);
+    if (requestId !== store.summaryRefreshId) return;
+    renderSummary(summary);
+    $('#summary-status').textContent = 'Summary updated ' + new Date().toLocaleTimeString();
+  } catch (error) {
+    if (requestId !== store.summaryRefreshId) return;
+    $('#summary-status').textContent = 'Unable to refresh summary. ' + error.message;
+    $('#summary-status').classList.add('error');
+  } finally {
+    if (requestId === store.summaryRefreshId) {
+      store.summaryLoading = false;
+      $('#refresh-summary').disabled = false;
+      $('#refresh-summary-label').textContent = 'Refresh summary';
+      $('.metrics').setAttribute('aria-busy', 'false');
+    }
+  }
+}
 async function refresh({ quiet = false } = {}) {
   const refreshId = ++store.refreshId;
+  ++store.summaryRefreshId;
+  store.summaryLoading = false;
+  $('#refresh-summary').disabled = true;
+  $('#refresh-summary-label').textContent = 'Refresh summary';
+  $('#summary-status').textContent = '';
+  $('#summary-status').classList.remove('error');
   store.loading = true;
   $('#refresh').disabled = true;
   $('#ack').disabled = true;
@@ -228,10 +270,7 @@ async function refresh({ quiet = false } = {}) {
       api('/api/device'),
     ]);
     if (refreshId !== store.refreshId) return;
-    Object.entries(summary).forEach(([key, value]) => {
-      const el = $(`[data-metric="${key}"]`);
-      if (el) el.textContent = Number(value).toLocaleString();
-    });
+    renderSummary(summary);
     store.pending = pending.events;
     store.exceptions = exceptions;
     store.audit = audit;
@@ -271,6 +310,7 @@ async function refresh({ quiet = false } = {}) {
     if (refreshId === store.refreshId) {
       store.loading = false;
       $('#refresh').disabled = false;
+      $('#refresh-summary').disabled = false;
       $('.metrics').setAttribute('aria-busy', 'false');
       $('.table-container').setAttribute('aria-busy', 'false');
       $('#table-body').hidden = false;
@@ -305,6 +345,7 @@ function sample(type) {
 $('#sample-count').addEventListener('click', () => sample('COUNT'));
 $('#sample-void').addEventListener('click', () => sample('VOID'));
 $('#refresh').addEventListener('click', () => refresh());
+$('#refresh-summary').addEventListener('click', refreshSummary);
 $('#source-filter').addEventListener('submit', (event) => {
   event.preventDefault();
   store.source = $('#source').value.trim();
@@ -409,5 +450,6 @@ $('#settings').addEventListener('click', () => {
 sample('COUNT');
 refresh();
 setInterval(() => {
-  if (!store.busy && !store.loading && !document.hidden) refresh({ quiet: true });
+  if (!store.busy && !store.loading && !store.summaryLoading && !document.hidden)
+    refresh({ quiet: true });
 }, 15000);

@@ -11,6 +11,7 @@
     "test": "node --test --test-concurrency=1 tests/integration.test.js",
     "test:ui": "playwright test",
     "mqtt:simulator": "node scripts/mqtt-simulator.js",
+    "mqtt:broker": "node scripts/mqtt-broker.js",
     "format": "prettier --write server.js src public scripts tests playwright.config.js",
     "format:check": "prettier --check server.js src public scripts tests playwright.config.js",
     "package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-project.ps1",

@@ -59,6 +59,12 @@
         <span id="source-help">Enter a source ID, e.g. LINE-01, or clear to see all sources.</span>
       </form>
       <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+      <div class="summary-toolbar">
+        <span id="summary-status" role="status" aria-live="polite"></span>
+        <button class="button outline" id="refresh-summary" type="button" disabled>
+          <span data-icon="refresh"></span><span id="refresh-summary-label">Refresh summary</span>
+        </button>
+      </div>
       <section class="metrics" aria-label="Production summary" aria-busy="true">
         <article class="metric">
           <span class="metric-icon blue" data-icon="gear"></span>
