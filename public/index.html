@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>NorthBridge · Production dashboard</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="NorthBridge home"
+        ><span class="monogram">NB</span
+        ><span><strong>NorthBridge</strong><small>Operations</small></span></a
+      >
+      <nav aria-label="Main navigation">
+        <button class="nav-item active" data-nav="production">
+          <span data-icon="bars"></span>Production
+        </button>
+        <button class="nav-item" data-nav="audit">
+          <span data-icon="document"></span>Audit history
+        </button>
+        <button class="nav-item" data-nav="device">
+          <span data-icon="network"></span>Device connection
+        </button>
+      </nav>
+      <div class="sidebar-foot">
+        <span class="dot" id="health-dot"></span><span id="health-text">Connecting to backend</span
+        ><small>PostgreSQL event ledger</small>
+      </div>
+    </aside>
+    <main>
+      <header class="page-header">
+        <div>
+          <h1>Production overview</h1>
+          <p>Review counts, resolve exceptions, and keep the floor moving.</p>
+        </div>
+        <button class="button outline" id="refresh">
+          <span data-icon="refresh"></span>Refresh
+        </button>
+      </header>
+      <form id="source-filter" class="source-filter" aria-label="Production source filter">
+        <label for="source">Production source</label>
+        <div class="source-controls">
+          <input
+            id="source"
+            type="text"
+            list="source-options"
+            maxlength="200"
+            placeholder="All sources"
+            autocomplete="off"
+            aria-describedby="source-help"
+          />
+          <datalist id="source-options"></datalist>
+          <button class="button" type="submit">Apply</button>
+          <button class="button outline" id="clear-source" type="button">Clear</button>
+        </div>
+        <span id="source-help">Enter a source ID, e.g. LINE-01, or clear to see all sources.</span>
+      </form>
+      <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+      <section class="metrics" aria-label="Production summary" aria-busy="true">
+        <article class="metric">
+          <span class="metric-icon blue" data-icon="gear"></span>
+          <h2>Net production</h2>
+          <strong data-metric="net_total">—</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-icon blue" data-icon="document"></span>
+          <h2>Processed events</h2>
+          <strong data-metric="processed_events">—</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-icon orange" data-icon="clock"></span>
+          <h2>Pending review</h2>
+          <strong data-metric="pending_ack">—</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-icon red" data-icon="warning"></span>
+          <h2>Unresolved</h2>
+          <strong data-metric="unresolved">—</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-icon rose" data-icon="copy"></span>
+          <h2>Duplicates</h2>
+          <strong data-metric="duplicates">—</strong>
+        </article>
+        <article class="metric">
+          <span class="metric-icon purple" data-icon="shuffle"></span>
+          <h2>Conflicts</h2>
+          <strong data-metric="conflicts">—</strong>
+        </article>
+        <article class="metric metric-rejected">
+          <span class="metric-icon red" data-icon="void"></span>
+          <h2>Rejected submissions</h2>
+          <strong data-metric="rejected_submissions">—</strong>
+        </article>
+      </section>
+      <div class="workspace">
+        <section class="panel activity" aria-labelledby="activity-heading">
+          <h2 id="activity-heading">Event activity</h2>
+          <div class="table-toolbar">
+            <div class="tabs" role="tablist" aria-label="Event view">
+              <button role="tab" aria-selected="true" class="tab active" data-tab="pending">
+                Pending review
+              </button>
+              <button role="tab" aria-selected="false" class="tab" data-tab="exceptions">
+                Exceptions
+              </button>
+              <button role="tab" aria-selected="false" class="tab" data-tab="all">
+                All events
+              </button>
+            </div>
+            <div class="table-actions">
+              <button class="button" id="ack" disabled>
+                <span data-icon="check"></span><span>Acknowledge selected</span>
+              </button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead id="table-head"></thead>
+              <tbody id="table-body"></tbody>
+            </table>
+            <div class="empty" id="empty">
+              <span data-icon="document"></span><strong>Loading events…</strong>
+              <p>Connecting to the production ledger.</p>
+            </div>
+          </div>
+          <div class="table-foot">
+            <span id="row-count">Loading…</span><span id="updated">—</span>
+          </div>
+        </section>
+        <section class="panel submit" aria-labelledby="submit-heading">
+          <h2 id="submit-heading">Submit events</h2>
+          <p>Enter event data as JSON and submit to the production system.</p>
+          <form id="event-form">
+            <label class="sr-only" for="payload">Event JSON object or array</label
+            ><textarea id="payload" spellcheck="false" required></textarea
+            ><button class="button primary" id="submit" type="submit">
+              <span data-icon="send"></span>Submit events
+            </button>
+          </form>
+          <div class="samples">
+            <span>Sample events</span>
+            <div>
+              <button class="button outline" id="sample-count">
+                <span data-icon="plus"></span>Count</button
+              ><button class="button outline" id="sample-void">
+                <span data-icon="void"></span>Void
+              </button>
+            </div>
+          </div>
+          <div id="submit-results" class="submission-results" aria-live="polite" hidden></div>
+        </section>
+      </div>
+      <section class="panel device" id="device" aria-labelledby="device-heading">
+        <div class="section-header">
+          <h2 id="device-heading"><span data-icon="network"></span>Device connection</h2>
+          <button class="link-button" id="settings">
+            <span data-icon="gear"></span>Connection settings
+          </button>
+        </div>
+        <div class="device-stats">
+          <div>
+            <span data-icon="wifi"></span
+            ><span>MQTT status<strong id="mqtt-status">—</strong></span>
+          </div>
+          <div>
+            <span data-icon="chip"></span><span>Candidate ID<strong id="candidate">—</strong></span>
+          </div>
+          <div>
+            <span data-icon="key"></span
+            ><span>Last challenge<strong id="last-challenge">—</strong></span>
+          </div>
+          <div>
+            <span data-icon="message"></span
+            ><span>Last response<strong id="last-response">—</strong></span>
+          </div>
+          <div>
+            <span data-icon="list"></span
+            ><span>Challenge count<strong id="challenge-count">—</strong></span>
+          </div>
+          <div>
+            <span data-icon="info"></span><span>Last error<strong id="last-error">—</strong></span>
+          </div>
+        </div>
+        <details class="challenge-history">
+          <summary>Challenge history &amp; responses</summary>
+          <div id="challenges">No challenges received.</div>
+        </details>
+      </section>
+      <footer class="footer">
+        NorthBridge Garments
+        <span>Counts are retained. Corrections are recorded. Every attempt is traceable.</span>
+      </footer>
+    </main>
+    <dialog id="detail-dialog">
+      <div class="dialog-header">
+        <h2 id="detail-title">Event details</h2>
+        <button class="button outline" id="close-detail">Close</button>
+      </div>
+      <pre id="detail-json"></pre>
+    </dialog>
+    <dialog id="settings-dialog">
+      <div class="dialog-header">
+        <h2>Connection settings</h2>
+        <button class="button outline" id="close-settings">Close</button>
+      </div>
+      <p>
+        MQTT is configured on the server. Update your local <code>.env</code> file, then restart the
+        app.
+      </p>
+      <pre id="settings-text"></pre>
+      <p>
+        Use the exact candidate ID assigned by your examiner. The worker subscribes only to that
+        candidate’s challenge topic, and publishes with QoS 1.
+      </p>
+    </dialog>
+  </body>
+</html>
