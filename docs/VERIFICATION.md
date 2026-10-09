@@ -62,4 +62,12 @@ Browser tests verify the editable source input applies `source_id` to Summary, P
 
 ## Remaining external handoff
 
-The examiner broker and its candidate-topic access are unverified. Confirm the exact assigned candidate ID before enabling it. GitHub publication, examiner Google Form submission, and a full private conversation export have not been performed. The source archive excludes `.env`, databases, dependencies, Python PDF-reading tools, test output, and build caches. Authentication, pagination, operational monitoring, and TLS are future deployment concerns described in the technical explanation.
+The examiner broker and its candidate-topic access are unverified. The configured candidate ID is `10`, as specified by the user. Examiner Google Form submission and a full private conversation export have not been performed. The source archive excludes `.env`, databases, dependencies, Python PDF-reading tools, test output, and build caches. Authentication, pagination, operational monitoring, and TLS are future deployment concerns described in the technical explanation.
+
+## GitHub publication
+
+Repository: [adnanahmed26/factory-event-dashboard](https://github.com/adnanahmed26/factory-event-dashboard), branch `main`. The existing project was imported through three current progress commits covering PostgreSQL/MQTT processing, the responsive dashboard, and tests/documentation. This publication note is a subsequent documentation commit. Neither the local folder nor the remote had earlier Git history; no historical commits were fabricated or backdated.
+
+GitHub publication uses the existing authenticated `adnanahmed26` account selected through Git Credential Manager. The remote origin remains the user-specified HTTPS URL. Pushes use ordinary history-preserving Git operations; no force push, deletion, or replacement of remote history was performed. All 43 selected source/documentation files passed secret scanning; the exact staged text blobs were also scanned before commits. Image artifacts were excluded from text scanning and inspected during dashboard verification. The documented loopback-only development password is a public example, not a GitHub or deployment credential. Real `.env` files, credential/key files, dependencies, database clusters, caches, and build output are ignored and remain local.
+
+The final pre-publication regression run passed 21 PostgreSQL/MQTT tests and five Chrome browser tests, and formatting checks passed. Google Form submission, private conversation export, and external examiner-broker verification remain separate handoff steps.
