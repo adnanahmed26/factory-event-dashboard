@@ -37,8 +37,18 @@ for (const file of files) {
   ) {
     findings.push({ file, reason: 'Sensitive filename selected for commit' });
   }
-  const buffer = staged ? execFileSync('git', ['show', ':' + file]) : readFileSync(file);
-  if (buffer.includes(0) || /\.(?:png|jpe?g|gif|webp|ico|pdf|zip)$/i.test(file)) continue;
+  if (/\.(?:png|jpe?g|gif|webp|ico|pdf|zip)$/i.test(file)) continue;
+  let buffer;
+  try {
+    buffer = staged
+      ? execFileSync('git', ['show', ':' + file], { maxBuffer: 16 * 1024 * 1024 })
+      : readFileSync(file);
+  } catch {
+    // Child-process errors may contain stdout; never print file content on failures.
+    findings.push({ file, reason: 'Unable to read candidate file; scan failed closed' });
+    continue;
+  }
+  if (buffer.includes(0)) continue;
   const lines = buffer.toString('utf8').split(/\r?\n/);
   lines.forEach((line, index) => {
     for (const [reason, pattern] of patterns) {
